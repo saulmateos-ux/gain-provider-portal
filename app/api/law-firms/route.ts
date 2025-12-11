@@ -28,21 +28,16 @@ export async function GET(request: NextRequest) {
       minCases: searchParams.get('minCases') || undefined,
     });
 
-    // Build query
+    // Build query - simplified for real data
     let sql = 'SELECT * FROM law_firm_performance_mv WHERE case_count >= $1';
     const queryParams: any[] = [params.minCases];
 
-    if (params.providerId) {
-      sql += ' AND provider_id = $2';
-      queryParams.push(params.providerId);
-    }
-
     if (params.lawFirmId) {
-      sql += ` AND law_firm_id = $${queryParams.length + 1}`;
+      sql += ` AND law_firm_id = $2`;
       queryParams.push(params.lawFirmId);
     }
 
-    sql += ' ORDER BY collection_rate DESC, total_invoiced DESC';
+    sql += ' ORDER BY total_invoice DESC';
 
     const result = await query(sql, queryParams);
 

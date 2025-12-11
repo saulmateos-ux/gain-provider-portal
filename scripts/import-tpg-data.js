@@ -103,7 +103,12 @@ async function importTPGData() {
     const csvContent = fs.readFileSync(csvPath, 'utf-8');
 
     console.log('📊 Parsing CSV...');
-    const parsed = Papa.parse(csvContent, {
+
+    // Skip the first 7 lines (filter info and extra headers)
+    const lines = csvContent.split('\n');
+    const dataLines = lines.slice(7).join('\n'); // Skip first 7 lines
+
+    const parsed = Papa.parse(dataLines, {
       header: true,
       skipEmptyLines: true,
       transformHeader: (header) => header.trim(),
@@ -115,6 +120,8 @@ async function importTPGData() {
       if (row.fid && row.fid.includes('fid')) return false;
       // Skip if no funding ID
       if (!row.fid || row.fid.trim() === '') return false;
+      // Skip if fid looks like it's still a header
+      if (row.fid.toLowerCase().includes('year') || row.fid.toLowerCase().includes('invoice')) return false;
       return true;
     });
 

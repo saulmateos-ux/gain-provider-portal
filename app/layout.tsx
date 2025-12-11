@@ -12,6 +12,12 @@ export const metadata: Metadata = {
   title: 'GAIN Provider Portal',
   description: 'Enhanced Provider Portal for GAIN - AI-powered financial analytics and insights',
   keywords: ['healthcare finance', 'personal injury', 'receivables management', 'analytics'],
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: '32x32' }
+    ],
+  },
 };
 
 /**

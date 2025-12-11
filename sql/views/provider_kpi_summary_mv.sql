@@ -29,10 +29,11 @@ SELECT
   COUNT(DISTINCT opportunity_name) AS case_count,
   COUNT(DISTINCT law_firm_id) FILTER (WHERE law_firm_id IS NOT NULL) AS law_firm_count,
 
-  -- Collection Rate (weighted average)
+  -- Collection Rate = Collected / Invoice Amount (only for transactions with deposits)
   CASE
-    WHEN SUM(invoice_amount) > 0 THEN
-      ROUND((SUM(collected_amount)::DECIMAL / SUM(invoice_amount)::DECIMAL) * 100, 2)
+    WHEN SUM(invoice_amount) FILTER (WHERE collected_amount > 0) > 0 THEN
+      ROUND((SUM(collected_amount) FILTER (WHERE collected_amount > 0)::DECIMAL /
+             SUM(invoice_amount) FILTER (WHERE collected_amount > 0)::DECIMAL) * 100, 2)
     ELSE 0
   END AS collection_rate,
 
@@ -74,6 +75,6 @@ CREATE INDEX idx_kpi_summary_provider_name
 
 -- Comments
 COMMENT ON MATERIALIZED VIEW provider_kpi_summary_mv IS 'Pre-computed provider KPIs for dashboard - refresh after data changes';
-COMMENT ON COLUMN provider_kpi_summary_mv.collection_rate IS 'Weighted average collection rate as percentage';
+COMMENT ON COLUMN provider_kpi_summary_mv.collection_rate IS 'Collection rate = amount deposited / invoice amount (only for transactions that had deposits)';
 COMMENT ON COLUMN provider_kpi_summary_mv.dso_days IS 'Days Sales Outstanding - measures collection efficiency';
 COMMENT ON COLUMN provider_kpi_summary_mv.calculated_at IS 'Timestamp when view was last refreshed';

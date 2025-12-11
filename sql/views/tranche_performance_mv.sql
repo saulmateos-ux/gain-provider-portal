@@ -25,18 +25,20 @@ SELECT
   SUM(write_off_amount) AS total_written_off,
   SUM(open_balance) AS total_open,
 
-  -- Collection Rate
+  -- Collection Rate = Collected / Invoice Amount (shows reduction %)
   CASE
-    WHEN SUM(invoice_amount) > 0 THEN
-      ROUND((SUM(collected_amount)::DECIMAL / SUM(invoice_amount)::DECIMAL) * 100, 2)
+    WHEN SUM(invoice_amount) FILTER (WHERE collected_amount > 0) > 0 THEN
+      ROUND((SUM(collected_amount) FILTER (WHERE collected_amount > 0)::DECIMAL /
+             SUM(invoice_amount) FILTER (WHERE collected_amount > 0)::DECIMAL) * 100, 2)
     ELSE 0
   END AS collection_rate,
 
-  -- Repayment Percentage (will need to calculate vs. advanced amount from tranches table)
+  -- Repayment Percentage (only for transactions with deposits)
   -- This is a simplified version showing collections as repayment
   CASE
-    WHEN SUM(invoice_amount) > 0 THEN
-      ROUND((SUM(collected_amount)::DECIMAL / SUM(invoice_amount)::DECIMAL) * 100, 2)
+    WHEN SUM(invoice_amount) FILTER (WHERE collected_amount > 0) > 0 THEN
+      ROUND((SUM(collected_amount) FILTER (WHERE collected_amount > 0)::DECIMAL /
+             SUM(invoice_amount) FILTER (WHERE collected_amount > 0)::DECIMAL) * 100, 2)
     ELSE 0
   END AS repayment_percentage,
 

@@ -1,0 +1,17 @@
+/**
+ * ⚠️ DEPRECATED - DO NOT USE THIS SCRIPT
+ *
+ * This script uses the old TPG_Invoice.csv format which is incomplete.
+ *
+ * USE INSTEAD: import-from-analysis.js
+ *
+ * The new script properly merges:
+ * - TPG_Analysis_Jeff_Invoice.csv (invoice data)
+ * - TPG_Analysis_Jeff_Collections.csv (collection dates)
+ *
+ * This file has been renamed to .DEPRECATED to prevent accidental use.
+ *
+ * If you need to reference the old logic, see git history.
+ */
+
+throw new Error('❌ DEPRECATED SCRIPT - Use import-from-analysis.js instead!');

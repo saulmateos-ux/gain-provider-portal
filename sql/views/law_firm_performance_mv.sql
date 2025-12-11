@@ -28,10 +28,11 @@ SELECT
   SUM(write_off_amount) AS total_written_off,
   SUM(open_balance) AS total_open,
 
-  -- Collection Rate (weighted average)
+  -- Collection Rate = Collected / Invoice Amount (for transactions with deposits only)
   CASE
-    WHEN SUM(invoice_amount) > 0 THEN
-      ROUND((SUM(collected_amount)::DECIMAL / SUM(invoice_amount)::DECIMAL) * 100, 2)
+    WHEN SUM(invoice_amount) FILTER (WHERE collected_amount > 0) > 0 THEN
+      ROUND((SUM(collected_amount) FILTER (WHERE collected_amount > 0)::DECIMAL /
+             SUM(invoice_amount) FILTER (WHERE collected_amount > 0)::DECIMAL) * 100, 2)
     ELSE 0
   END AS collection_rate,
 
@@ -103,12 +104,16 @@ SELECT
 
   -- Performance Tier (A/B/C/D/E based on collection rate)
   CASE
-    WHEN SUM(invoice_amount) > 0 THEN
+    WHEN SUM(invoice_amount) FILTER (WHERE collected_amount > 0) > 0 THEN
       CASE
-        WHEN (SUM(collected_amount)::DECIMAL / SUM(invoice_amount)::DECIMAL) >= 0.80 THEN 'A'
-        WHEN (SUM(collected_amount)::DECIMAL / SUM(invoice_amount)::DECIMAL) >= 0.65 THEN 'B'
-        WHEN (SUM(collected_amount)::DECIMAL / SUM(invoice_amount)::DECIMAL) >= 0.50 THEN 'C'
-        WHEN (SUM(collected_amount)::DECIMAL / SUM(invoice_amount)::DECIMAL) >= 0.35 THEN 'D'
+        WHEN (SUM(collected_amount) FILTER (WHERE collected_amount > 0)::DECIMAL /
+              SUM(invoice_amount) FILTER (WHERE collected_amount > 0)::DECIMAL) >= 0.80 THEN 'A'
+        WHEN (SUM(collected_amount) FILTER (WHERE collected_amount > 0)::DECIMAL /
+              SUM(invoice_amount) FILTER (WHERE collected_amount > 0)::DECIMAL) >= 0.65 THEN 'B'
+        WHEN (SUM(collected_amount) FILTER (WHERE collected_amount > 0)::DECIMAL /
+              SUM(invoice_amount) FILTER (WHERE collected_amount > 0)::DECIMAL) >= 0.50 THEN 'C'
+        WHEN (SUM(collected_amount) FILTER (WHERE collected_amount > 0)::DECIMAL /
+              SUM(invoice_amount) FILTER (WHERE collected_amount > 0)::DECIMAL) >= 0.35 THEN 'D'
         ELSE 'E'
       END
     ELSE 'E'
@@ -142,6 +147,6 @@ CREATE INDEX idx_law_firm_perf_provider_lawfirm
 
 -- Comments
 COMMENT ON MATERIALIZED VIEW law_firm_performance_mv IS 'Pre-computed law firm performance metrics';
-COMMENT ON COLUMN law_firm_performance_mv.collection_rate IS 'Weighted collection rate percentage';
+COMMENT ON COLUMN law_firm_performance_mv.collection_rate IS 'Collection rate = amount deposited / invoice amount (only for transactions that had deposits)';
 COMMENT ON COLUMN law_firm_performance_mv.avg_case_duration_days IS 'Average days from origination to settlement';
 COMMENT ON COLUMN law_firm_performance_mv.performance_tier IS 'A=80%+, B=65%+, C=50%+, D=35%+, E=<35%';
