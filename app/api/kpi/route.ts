@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
           ROUND(
             CASE
               WHEN COUNT(*) FILTER (WHERE collection_date IS NOT NULL AND collected_amount > 0) > 0
-              THEN AVG(EXTRACT(DAY FROM (collection_date - invoice_date))) FILTER (WHERE collection_date IS NOT NULL AND collected_amount > 0)
+              THEN AVG(collection_date - invoice_date) FILTER (WHERE collection_date IS NOT NULL AND collected_amount > 0 AND invoice_date IS NOT NULL)
               ELSE 0
             END,
             0
